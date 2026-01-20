@@ -52,7 +52,7 @@ jobs:
 
   mac:
     name: Build macOS arm64
-    runs-on: macos-13-arm64
+    runs-on: macos-14
 
     steps:
       - name: Checkout
