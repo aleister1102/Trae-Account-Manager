@@ -1,0 +1,86 @@
+name: Tauri multi-platform build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  linux:
+    name: Build Linux amd64
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Add Linux target
+        run: rustup target add x86_64-unknown-linux-gnu
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Linux artifact
+        run: npm run build:linux
+
+      - name: Upload Debian package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Trae-Auto-linux-amd64-deb
+          path: src-tauri/target/release/bundle/deb/Trae-Auto.deb
+
+      - name: Upload Linux binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: Trae-Auto-linux-amd64-binary
+          path: src-tauri/target/release/trae-auto
+
+  mac:
+    name: Build macOS arm64
+    runs-on: macos-13-arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Add macOS target
+        run: rustup target add aarch64-apple-darwin
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build macOS artifact
+        run: npm run build:mac
+
+      - name: Upload macOS disk image
+        uses: actions/upload-artifact@v4
+        with:
+          name: Trae-Auto-macos-arm64-dmg
+          path: src-tauri/target/release/bundle/dmg/Trae-Auto.dmg
