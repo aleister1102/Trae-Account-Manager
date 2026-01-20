@@ -119,7 +119,7 @@ export function UpdateTokenModal({
               <li>按 <kbd>F12</kbd> 打开开发者工具</li>
               <li>切换到 <strong>Network</strong> 标签</li>
               <li>刷新页面</li>
-   <li>在请求列表中找到 <code>GetUserToken</code></li>
+              <li>在请求列表中找到 <code>GetUserToken</code></li>
               <li>点击该请求，在右侧找到 <strong>Response</strong> 标签</li>
               <li>复制整个响应内容，粘贴到下方</li>
             </ol>

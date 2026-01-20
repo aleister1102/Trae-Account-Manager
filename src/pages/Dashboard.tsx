@@ -83,7 +83,7 @@ export function Dashboard({ accounts }: DashboardProps) {
             </div>
             <div className="stat-card-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
           </div>
@@ -98,7 +98,7 @@ export function Dashboard({ accounts }: DashboardProps) {
             </div>
             <div className="stat-card-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
               </svg>
             </div>
           </div>
@@ -113,7 +113,7 @@ export function Dashboard({ accounts }: DashboardProps) {
             </div>
             <div className="stat-card-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20 6L9 17l-5-5"/>
+                <path d="M20 6L9 17l-5-5" />
               </svg>
             </div>
           </div>
@@ -128,8 +128,8 @@ export function Dashboard({ accounts }: DashboardProps) {
             </div>
             <div className="stat-card-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 6v6l4 2"/>
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
               </svg>
             </div>
           </div>
