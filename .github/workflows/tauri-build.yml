@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Trae-Auto-linux-amd64-deb
-          path: src-tauri/target/release/bundle/deb/Trae-Auto.deb
+          path: src-tauri/target/release/bundle/deb/Trae-Auto_*.deb
 
       - name: Upload Linux binary
         uses: actions/upload-artifact@v4
@@ -80,4 +80,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Trae-Auto-macos-arm64-dmg
-          path: src-tauri/target/release/bundle/dmg/Trae-Auto.dmg
+          path: src-tauri/target/release/bundle/dmg/Trae-Auto_*.dmg

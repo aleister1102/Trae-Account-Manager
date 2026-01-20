@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Trae Auto",
+  "productName": "Trae-Auto",
   "version": "0.1.0",
   "identifier": "com.sauce.trae-auto",
   "build": {
