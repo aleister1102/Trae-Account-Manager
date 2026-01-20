@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { UsageSummary } from "../types";
 
 interface AccountListItemProps {
@@ -16,6 +17,7 @@ interface AccountListItemProps {
 }
 
 export function AccountListItem({ account, usage, selected, onSelect, onContextMenu }: AccountListItemProps) {
+  const { t } = useTranslation();
   const totalUsed = usage ? usage.fast_request_used + usage.extra_fast_request_used : 0;
   const totalLimit = usage ? usage.fast_request_limit + usage.extra_fast_request_limit : 0;
   const totalLeft = usage ? usage.fast_request_left + usage.extra_fast_request_left : 0;
@@ -34,12 +36,12 @@ export function AccountListItem({ account, usage, selected, onSelect, onContextM
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return "今天";
-    if (diffDays === 1) return "昨天";
-    if (diffDays < 7) return `${diffDays}天前`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)}周前`;
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)}个月前`;
-    return `${Math.floor(diffDays / 365)}年前`;
+    if (diffDays === 0) return t("common.today") || "Today";
+    if (diffDays === 1) return t("common.yesterday") || "Yesterday";
+    if (diffDays < 7) return t("common.days_ago", { count: diffDays }) || `${diffDays} days ago`;
+    if (diffDays < 30) return t("common.weeks_ago", { count: Math.floor(diffDays / 7) }) || `${Math.floor(diffDays / 7)} weeks ago`;
+    if (diffDays < 365) return t("common.months_ago", { count: Math.floor(diffDays / 30) }) || `${Math.floor(diffDays / 30)} months ago`;
+    return t("common.years_ago", { count: Math.floor(diffDays / 365) }) || `${Math.floor(diffDays / 365)} years ago`;
   };
 
   const isTokenExpired = false; // TODO: 根据实际 token 过期时间判断
@@ -70,13 +72,13 @@ export function AccountListItem({ account, usage, selected, onSelect, onContextM
 
       <div className="list-item-info">
         <span className="list-item-email">{account.email || account.name}</span>
-        <span className="list-item-id">Trae 账号</span>
+        <span className="list-item-id">{t("accounts.trae_account")}</span>
       </div>
 
       <div className="list-item-plan">
         <span className="plan-badge">{usage?.plan_type || account.plan_type || "Free"}</span>
         {usage && usage.extra_fast_request_limit > 0 && (
-          <span className="extra-badge">礼包</span>
+          <span className="extra-badge">{t("accounts.gift") || "Gift"}</span>
         )}
       </div>
 
@@ -85,7 +87,7 @@ export function AccountListItem({ account, usage, selected, onSelect, onContextM
           <span className="usage-text">
             <strong>{Math.round(totalUsed)}</strong> / {totalLimit}
           </span>
-          <span className="usage-left">剩余 {Math.round(totalLeft)}</span>
+          <span className="usage-left">{t("accounts.remaining")} {Math.round(totalLeft)}</span>
         </div>
         <div className="usage-bar-mini">
           <div
@@ -96,19 +98,19 @@ export function AccountListItem({ account, usage, selected, onSelect, onContextM
       </div>
 
       <div className="list-item-reset">
-        <span className="reset-label">添加时间</span>
+        <span className="reset-label">{t("accounts.added_at")}</span>
         <span className="reset-date">{formatCreatedDate(account.created_at)}</span>
       </div>
 
       <div className="list-item-status">
         <span className={`status-dot ${isTokenExpired ? "expired" : "normal"}`}></span>
-        <span>{isTokenExpired ? "过期" : "正常"}</span>
+        <span>{isTokenExpired ? t("accounts.expired") : t("accounts.normal")}</span>
       </div>
 
       <div className="list-item-actions">
         <button
           className="action-btn"
-          title="更多操作"
+          title={t("accounts.more_ops") || "More Operations"}
           onClick={(e) => {
             e.stopPropagation();
             onContextMenu(e, account.id);

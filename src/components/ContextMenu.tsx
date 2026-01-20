@@ -1,33 +1,39 @@
 import { useEffect, useRef } from "react";
 
+import { useTranslation } from "react-i18next";
+
 interface ContextMenuProps {
   x: number;
   y: number;
   onClose: () => void;
   onViewDetail: () => void;
-  onRefresh: () => void;
-  onUpdateToken: () => void;
-  onCopyToken: () => void;
-  onSwitchAccount: () => void;
-  onClaimGift: () => void;
-  onDelete: () => void;
-  isCurrent?: boolean; // 是否是当前使用的账号
+  onViewDetail: (id: string) => void;
+  onRefresh: (id: string) => void;
+  onUpdateToken: (id: string) => void;
+  onCopyToken: (id: string) => void;
+  onSwitch: (id: string) => void;
+  onClaimGift: (id: string) => void;
+  onDelete: (id: string) => void;
+  accountId: string;
+  isCurrent?: boolean;
 }
 
 export function ContextMenu({
   x,
   y,
+  accountId,
+  isCurrent,
   onClose,
   onViewDetail,
   onRefresh,
   onUpdateToken,
   onCopyToken,
-  onSwitchAccount,
-  onClaimGift,
   onDelete,
-  isCurrent = false,
+  onSwitch,
+  onClaimGift,
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     // 调整菜单位置，防止超出屏幕
@@ -52,38 +58,40 @@ export function ContextMenu({
         className="context-menu"
         style={{ left: x, top: y }}
       >
-        <div className="context-menu-item" onClick={onViewDetail}>
-          <span className="icon">👁</span>
-          查看详情
+        <div className="context-menu-item" onClick={() => onViewDetail(accountId)}>
+          <span className="item-icon">👁️</span>
+          {t("accounts.view_detail")}
         </div>
-        <div className="context-menu-item" onClick={onRefresh}>
-          <span className="icon">🔄</span>
-          刷新数据
+        <div className="context-menu-item" onClick={() => onRefresh(accountId)}>
+          <span className="item-icon">🔄</span>
+          {t("accounts.refresh_data")}
         </div>
-        <div className="context-menu-item" onClick={onUpdateToken}>
-          <span className="icon">🔐</span>
-          更新 Token
+        <div className="context-menu-divider"></div>
+        <div className="context-menu-item" onClick={() => onUpdateToken(accountId)}>
+          <span className="item-icon">🔑</span>
+          {t("accounts.update_token")}
         </div>
-        <div className="context-menu-item" onClick={onCopyToken}>
-          <span className="icon">🔑</span>
-          复制 Token
+        <div className="context-menu-item" onClick={() => onCopyToken(accountId)}>
+          <span className="item-icon">📋</span>
+          {t("accounts.copy_token")}
         </div>
+        <div className="context-menu-divider"></div>
         <div
           className={`context-menu-item ${isCurrent ? "disabled" : ""}`}
-          onClick={isCurrent ? undefined : onSwitchAccount}
-          title={isCurrent ? "当前已是此账号" : "切换到此账号"}
+          onClick={() => !isCurrent && onSwitch(accountId)}
+          title={isCurrent ? t("accounts.this_is_current") : ""}
         >
-          <span className="icon">{isCurrent ? "✓" : "🔀"}</span>
-          {isCurrent ? "当前使用中" : "切换账号"}
+          <span className="item-icon">⚡</span>
+          {isCurrent ? t("accounts.currently_active") : t("accounts.switch_account")}
         </div>
-        <div className="context-menu-item" onClick={onClaimGift}>
-          <span className="icon">🎁</span>
-          获取礼包
+        <div className="context-menu-item" onClick={() => onClaimGift(accountId)}>
+          <span className="item-icon">🎁</span>
+          {t("accounts.claim_gift")}
         </div>
-        <div className="context-menu-divider" />
-        <div className="context-menu-item danger" onClick={onDelete}>
-          <span className="icon">🗑</span>
-          删除账号
+        <div className="context-menu-divider"></div>
+        <div className="context-menu-item danger" onClick={() => onDelete(accountId)}>
+          <span className="item-icon">🗑️</span>
+          {t("accounts.delete_account")}
         </div>
       </div>
     </>

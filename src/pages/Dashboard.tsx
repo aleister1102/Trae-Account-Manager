@@ -1,4 +1,5 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { useTranslation } from "react-i18next";
 import type { UsageSummary } from "../types";
 import { UsageEvents } from "../components/UsageEvents";
 
@@ -13,6 +14,7 @@ interface DashboardProps {
 }
 
 export function Dashboard({ accounts }: DashboardProps) {
+  const { t } = useTranslation();
   const totalAccounts = accounts.length;
   const activeAccounts = accounts.filter(a => a.usage && a.usage.fast_request_left > 0).length;
 
@@ -34,8 +36,8 @@ export function Dashboard({ accounts }: DashboardProps) {
   const usagePercent = totalLimit > 0 ? Math.round((totalUsed / totalLimit) * 100) : 0;
 
   const pieData = [
-    { name: '已使用', value: totalUsed, color: '#6366f1' },
-    { name: '剩余', value: totalLeft, color: '#e5e7eb' },
+    { name: t('dashboard.used'), value: totalUsed, color: '#6366f1' },
+    { name: t('dashboard.available'), value: totalLeft, color: '#e5e7eb' },
   ];
 
 
@@ -58,17 +60,17 @@ export function Dashboard({ accounts }: DashboardProps) {
     <div className="dashboard">
       <div className="dashboard-header">
         <div className="welcome-section">
-          <h1>欢迎回来 👋</h1>
-          <p>这是您的 Trae 账号使用概览</p>
+          <h1>{t('dashboard.welcome')} 👋</h1>
+          <p>{t('dashboard.overview')}</p>
         </div>
         <div className="header-stats">
           <div className="quick-stat">
             <span className="quick-stat-value">{totalAccounts}</span>
-            <span className="quick-stat-label">账号总数</span>
+            <span className="quick-stat-label">{t('dashboard.total_accounts')}</span>
           </div>
           <div className="quick-stat">
             <span className="quick-stat-value success">{activeAccounts}</span>
-            <span className="quick-stat-label">可用账号</span>
+            <span className="quick-stat-label">{t('dashboard.active_accounts')}</span>
           </div>
         </div>
       </div>
@@ -77,7 +79,7 @@ export function Dashboard({ accounts }: DashboardProps) {
         <div className="stat-card gradient-purple">
           <div className="stat-card-content">
             <div className="stat-card-info">
-              <span className="stat-card-label">总配额</span>
+              <span className="stat-card-label">{t('dashboard.total_quota')}</span>
               <span className="stat-card-value">{totalLimit}</span>
               <span className="stat-card-change">Fast Requests</span>
             </div>
@@ -92,9 +94,9 @@ export function Dashboard({ accounts }: DashboardProps) {
         <div className="stat-card gradient-blue">
           <div className="stat-card-content">
             <div className="stat-card-info">
-              <span className="stat-card-label">已使用</span>
+              <span className="stat-card-label">{t('dashboard.used')}</span>
               <span className="stat-card-value">{Math.round(totalUsed)}</span>
-              <span className="stat-card-change">{usagePercent}% 使用率</span>
+              <span className="stat-card-change">{usagePercent}% {t('dashboard.usage_rate')}</span>
             </div>
             <div className="stat-card-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -107,9 +109,9 @@ export function Dashboard({ accounts }: DashboardProps) {
         <div className="stat-card gradient-green">
           <div className="stat-card-content">
             <div className="stat-card-info">
-              <span className="stat-card-label">剩余可用</span>
+              <span className="stat-card-label">{t('dashboard.available')}</span>
               <span className="stat-card-value">{Math.round(totalLeft)}</span>
-              <span className="stat-card-change">{100 - usagePercent}% 剩余</span>
+              <span className="stat-card-change">{100 - usagePercent}% {t('dashboard.remaining_percent')}</span>
             </div>
             <div className="stat-card-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -122,9 +124,9 @@ export function Dashboard({ accounts }: DashboardProps) {
         <div className="stat-card gradient-orange">
           <div className="stat-card-content">
             <div className="stat-card-info">
-              <span className="stat-card-label">平均使用</span>
+              <span className="stat-card-label">{t('dashboard.average_usage')}</span>
               <span className="stat-card-value">{totalAccounts > 0 ? Math.round(totalUsed / totalAccounts) : 0}</span>
-              <span className="stat-card-change">每账号</span>
+              <span className="stat-card-change">{t('dashboard.per_account')}</span>
             </div>
             <div className="stat-card-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -139,7 +141,7 @@ export function Dashboard({ accounts }: DashboardProps) {
       <div className="charts-grid-2col">
         <div className="chart-card">
           <div className="chart-header">
-            <h3>使用量分布</h3>
+            <h3>{t('dashboard.usage_distribution')}</h3>
             <span className="chart-badge">{usagePercent}%</span>
           </div>
           <div className="chart-body pie-chart-container">
@@ -163,24 +165,24 @@ export function Dashboard({ accounts }: DashboardProps) {
             </ResponsiveContainer>
             <div className="pie-center-text">
               <span className="pie-value">{Math.round(totalLeft)}</span>
-              <span className="pie-label">剩余</span>
+              <span className="pie-label">{t('dashboard.available')}</span>
             </div>
           </div>
           <div className="chart-legend">
             <div className="legend-item">
               <span className="legend-dot" style={{ background: '#6366f1' }}></span>
-              <span>已使用 ({Math.round(totalUsed)})</span>
+              <span>{t('dashboard.used')} ({Math.round(totalUsed)})</span>
             </div>
             <div className="legend-item">
               <span className="legend-dot" style={{ background: '#e5e7eb' }}></span>
-              <span>剩余 ({Math.round(totalLeft)})</span>
+              <span>{t('dashboard.available')} ({Math.round(totalLeft)})</span>
             </div>
           </div>
         </div>
 
         <div className="chart-card">
           <div className="chart-header">
-            <h3>套餐分布</h3>
+            <h3>{t('dashboard.plan_distribution')}</h3>
           </div>
           <div className="chart-body">
             {quotaData.length > 0 ? (
@@ -202,7 +204,7 @@ export function Dashboard({ accounts }: DashboardProps) {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="chart-empty">暂无数据</div>
+              <div className="chart-empty">{t('dashboard.no_data')}</div>
             )}
           </div>
         </div>
@@ -214,8 +216,8 @@ export function Dashboard({ accounts }: DashboardProps) {
 
           <div className="accounts-preview">
             <div className="preview-header">
-              <h3>账号概览</h3>
-              <span className="preview-count">{accounts.length} 个账号</span>
+              <h3>{t('dashboard.account_overview')}</h3>
+              <span className="preview-count">{t('accounts.count', { count: accounts.length })}</span>
             </div>
             <div className="preview-list">
               {accounts.slice(0, 4).map((account) => {
@@ -255,8 +257,8 @@ export function Dashboard({ accounts }: DashboardProps) {
       {accounts.length === 0 && (
         <div className="dashboard-empty">
           <div className="empty-icon">📊</div>
-          <h3>暂无账号数据</h3>
-          <p>请先在"账号管理"中添加账号</p>
+          <h3>{t('accounts.no_accounts')}</h3>
+          <p>{t('dashboard.no_data_desc')}</p>
         </div>
       )}
     </div>
