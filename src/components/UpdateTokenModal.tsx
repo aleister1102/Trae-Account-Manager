@@ -8,8 +8,12 @@ interface UpdateTokenModalProps {
   onClose: () => void;
   onUpdate: (accountId: string, token: string) => Promise<void>;
 }
-
-onUpdate,
+export function UpdateTokenModal({
+  isOpen,
+  accountId,
+  accountName,
+  onClose,
+  onUpdate,
 }: UpdateTokenModalProps) {
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState("");

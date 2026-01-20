@@ -7,21 +7,18 @@ interface ContextMenuProps {
   y: number;
   onClose: () => void;
   onViewDetail: () => void;
-  onViewDetail: (id: string) => void;
-  onRefresh: (id: string) => void;
-  onUpdateToken: (id: string) => void;
-  onCopyToken: (id: string) => void;
-  onSwitch: (id: string) => void;
-  onClaimGift: (id: string) => void;
-  onDelete: (id: string) => void;
-  accountId: string;
+  onRefresh: () => void;
+  onUpdateToken: () => void;
+  onCopyToken: () => void;
+  onSwitch: () => void;
+  onClaimGift: () => void;
+  onDelete: () => void;
   isCurrent?: boolean;
 }
 
 export function ContextMenu({
   x,
   y,
-  accountId,
   isCurrent,
   onClose,
   onViewDetail,
@@ -58,38 +55,38 @@ export function ContextMenu({
         className="context-menu"
         style={{ left: x, top: y }}
       >
-        <div className="context-menu-item" onClick={() => onViewDetail(accountId)}>
+        <div className="context-menu-item" onClick={() => onViewDetail()}>
           <span className="item-icon">👁️</span>
           {t("accounts.view_detail")}
         </div>
-        <div className="context-menu-item" onClick={() => onRefresh(accountId)}>
+        <div className="context-menu-item" onClick={() => onRefresh()}>
           <span className="item-icon">🔄</span>
           {t("accounts.refresh_data")}
         </div>
         <div className="context-menu-divider"></div>
-        <div className="context-menu-item" onClick={() => onUpdateToken(accountId)}>
+        <div className="context-menu-item" onClick={() => onUpdateToken()}>
           <span className="item-icon">🔑</span>
           {t("accounts.update_token")}
         </div>
-        <div className="context-menu-item" onClick={() => onCopyToken(accountId)}>
+        <div className="context-menu-item" onClick={() => onCopyToken()}>
           <span className="item-icon">📋</span>
           {t("accounts.copy_token")}
         </div>
         <div className="context-menu-divider"></div>
         <div
           className={`context-menu-item ${isCurrent ? "disabled" : ""}`}
-          onClick={() => !isCurrent && onSwitch(accountId)}
+          onClick={() => !isCurrent && onSwitch()}
           title={isCurrent ? t("accounts.this_is_current") : ""}
         >
           <span className="item-icon">⚡</span>
           {isCurrent ? t("accounts.currently_active") : t("accounts.switch_account")}
         </div>
-        <div className="context-menu-item" onClick={() => onClaimGift(accountId)}>
+        <div className="context-menu-item" onClick={() => onClaimGift()}>
           <span className="item-icon">🎁</span>
           {t("accounts.claim_gift")}
         </div>
         <div className="context-menu-divider"></div>
-        <div className="context-menu-item danger" onClick={() => onDelete(accountId)}>
+        <div className="context-menu-item danger" onClick={() => onDelete()}>
           <span className="item-icon">🗑️</span>
           {t("accounts.delete_account")}
         </div>

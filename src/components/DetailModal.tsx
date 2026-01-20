@@ -1,10 +1,10 @@
 import { useTranslation } from "react-i18next";
-import type { Account, UsageSummary } from "../types";
+import type { AccountBrief, UsageSummary } from "../types";
 
 interface DetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  account: Account | null;
+  account: AccountBrief | null;
   usage: UsageSummary | null;
 }
 
@@ -12,14 +12,7 @@ export function DetailModal({ isOpen, onClose, account, usage }: DetailModalProp
   const { t } = useTranslation();
   if (!isOpen || !account) return null;
 
-  const formatDate = (timestamp: number) => {
-    if (!timestamp) return "-";
-    return new Date(timestamp * 1000).toLocaleString("zh-CN");
-  };
 
-  const formatNumber = (num: number) => {
-    return num.toLocaleString("zh-CN", { maximumFractionDigits: 2 });
-  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -119,7 +112,7 @@ export function DetailModal({ isOpen, onClose, account, usage }: DetailModalProp
                 </div>
                 <div className="quota-mini-item">
                   <span className="quota-mini-label">{t("accounts.autocomplete")}</span>
-                  <span className="quota-mini-value">{usage ? usage.auto_complete_left : "-"} / {usage ? usage.auto_complete_limit : "-"}</span>
+                  <span className="quota-mini-value">{usage ? usage.autocomplete_left : "-"} / {usage ? usage.autocomplete_limit : "-"}</span>
                 </div>
               </div>
             </div>
