@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
+import { useTranslation } from "react-i18next";
 import * as api from "../api";
 
 interface SettingsProps {
@@ -7,6 +8,7 @@ interface SettingsProps {
 }
 
 export function Settings({ onToast }: SettingsProps) {
+  const { t, i18n } = useTranslation();
   const [traeMachineId, setTraeMachineId] = useState<string>("");
   const [traeRefreshing, setTraeRefreshing] = useState(false);
   const [clearingTrae, setClearingTrae] = useState(false);
@@ -22,7 +24,7 @@ export function Settings({ onToast }: SettingsProps) {
       setTraeMachineId(id);
     } catch (err: any) {
       console.error("获取 Trae IDE 机器码失败:", err);
-      setTraeMachineId("未找到");
+      setTraeMachineId(t("common.error"));
     } finally {
       setTraeRefreshing(false);
     }
@@ -51,15 +53,15 @@ export function Settings({ onToast }: SettingsProps) {
   const handleCopyTraeMachineId = async () => {
     try {
       await navigator.clipboard.writeText(traeMachineId);
-      onToast?.("success", "Trae IDE 机器码已复制到剪贴板");
+      onToast?.("success", t("settings.machine_id_copied"));
     } catch {
-      onToast?.("error", "复制失败");
+      onToast?.("error", t("common.error"));
     }
   };
 
   // 清除 Trae IDE 登录状态
   const handleClearTraeLoginState = async () => {
-    if (!confirm("确定要清除 Trae IDE 登录状态吗？\n\n这将：\n• 重置 Trae IDE 机器码\n• 清除所有登录信息\n• 删除本地缓存数据\n\n操作后 Trae IDE 将变成全新安装状态，需要重新登录。\n\n请确保 Trae IDE 已关闭！")) {
+    if (!confirm(t("settings.clear_login_confirm"))) {
       return;
     }
 
@@ -67,9 +69,9 @@ export function Settings({ onToast }: SettingsProps) {
     try {
       await api.clearTraeLoginState();
       await loadTraeMachineId(); // 重新加载新的机器码
-      onToast?.("success", "Trae IDE 登录状态已清除，请重新打开 Trae IDE 登录");
+      onToast?.("success", t("settings.clear_login_success"));
     } catch (err: any) {
-      onToast?.("error", err.message || "清除失败");
+      onToast?.("error", err.message || t("common.error"));
     } finally {
       setClearingTrae(false);
     }
@@ -81,44 +83,81 @@ export function Settings({ onToast }: SettingsProps) {
     try {
       const path = await api.scanTraePath();
       setTraePath(path);
-      onToast?.("success", "已找到 Trae IDE: " + path);
+      onToast?.("success", t("settings.trae_found", { path }));
     } catch (err: any) {
-      onToast?.("error", err.message || "未找到 Trae IDE，请手动设置路径");
+      onToast?.("error", err.message || t("settings.trae_not_found"));
     } finally {
       setScanning(false);
     }
   };
 
   // 手动设置 Trae IDE 路径
-  const handleSetTraePath = async () => {
+  const handleManualSetTraePath = async () => {
     try {
       const selected = await open({
         multiple: false,
         filters: [{
           name: "Trae IDE",
-          extensions: ["exe"]
+          extensions: ["exe", "app"]
         }],
-        title: "选择 Trae.exe 文件"
+        title: t("settings.select_trae_title")
       });
 
       if (selected) {
-        const path = selected as string;
+        const path = typeof selected === 'string' ? selected : selected[0];
         await api.setTraePath(path);
         setTraePath(path);
-        onToast?.("success", "Trae IDE 路径已保存");
+        onToast?.("success", t("settings.path_saved"));
       }
     } catch (err: any) {
-      onToast?.("error", err.message || "选择文件失败");
+      onToast?.("error", err.message || t("common.error"));
     }
+  };
+
+  const handleLanguageChange = (lng: string) => {
+    i18n.changeLanguage(lng);
   };
 
   return (
     <div className="settings-page">
-      <h2 className="page-title">设置</h2>
+      <h2 className="page-title">{t("settings.title")}</h2>
+
+      <div className="settings-section">
+        <h3>{t("settings.language")}</h3>
+        <div className="machine-id-card trae-card">
+          <div className="machine-id-header">
+            <div className="machine-id-icon trae-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 8l6 6" />
+                <path d="M4 14l6-6 2-3" />
+                <path d="M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6" />
+              </svg>
+            </div>
+            <div className="machine-id-title">
+              <span>{t("settings.language")}</span>
+              <span className="machine-id-subtitle">{t("settings.language_desc")}</span>
+            </div>
+          </div>
+          <div className="machine-id-actions">
+            <button
+              className={`machine-id-btn ${i18n.language === "zh" ? "active" : ""}`}
+              onClick={() => handleLanguageChange("zh")}
+            >
+              简体中文
+            </button>
+            <button
+              className={`machine-id-btn ${i18n.language === "en" ? "active" : ""}`}
+              onClick={() => handleLanguageChange("en")}
+            >
+              English
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Trae IDE 机器码 */}
       <div className="settings-section">
-        <h3>Trae IDE 机器码</h3>
+        <h3>{t("settings.machine_id_title")}</h3>
         <div className="machine-id-card trae-card">
           <div className="machine-id-header">
             <div className="machine-id-icon trae-icon">
@@ -130,48 +169,48 @@ export function Settings({ onToast }: SettingsProps) {
             </div>
             <div className="machine-id-title">
               <span>Trae IDE MachineId</span>
-              <span className="machine-id-subtitle">Trae IDE 客户端唯一标识符</span>
+              <span className="machine-id-subtitle">{t("settings.machine_id_subtitle")}</span>
             </div>
           </div>
           <div className="machine-id-value">
-            <code>{traeRefreshing ? "加载中..." : traeMachineId}</code>
+            <code>{traeRefreshing ? t("common.loading") : traeMachineId}</code>
           </div>
           <div className="machine-id-actions">
             <button
               className="machine-id-btn"
               onClick={loadTraeMachineId}
               disabled={traeRefreshing}
-              title="刷新"
+              title={t("common.refresh")}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
               </svg>
-              刷新
+              {t("common.refresh")}
             </button>
             <button
               className="machine-id-btn"
               onClick={handleCopyTraeMachineId}
-              disabled={!traeMachineId || traeRefreshing || traeMachineId === "未找到"}
-              title="复制"
+              disabled={!traeMachineId || traeRefreshing || traeMachineId === t("common.error")}
+              title={t("common.copy")}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
               </svg>
-              复制
+              {t("common.copy")}
             </button>
             <button
               className="machine-id-btn danger"
               onClick={handleClearTraeLoginState}
               disabled={clearingTrae || traeRefreshing}
-              title="清除登录状态"
+              title={t("settings.clear_login")}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                 <line x1="10" y1="11" x2="10" y2="17" />
                 <line x1="14" y1="11" x2="14" y2="17" />
               </svg>
-              {clearingTrae ? "清除中..." : "清除登录状态"}
+              {clearingTrae ? t("common.loading") : t("settings.clear_login")}
             </button>
           </div>
           <div className="machine-id-tip warning">
@@ -180,14 +219,14 @@ export function Settings({ onToast }: SettingsProps) {
               <line x1="12" y1="9" x2="12" y2="13" />
               <line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
-            <span>清除登录状态会重置机器码并删除所有登录信息，Trae IDE 将需要重新登录。请先关闭 Trae IDE。</span>
+            <span>{t("settings.clear_login_tip")}</span>
           </div>
         </div>
       </div>
 
       {/* Trae IDE 路径设置 */}
       <div className="settings-section">
-        <h3>Trae IDE 路径</h3>
+        <h3>{t("settings.path_title")}</h3>
         <div className="machine-id-card trae-card">
           <div className="machine-id-header">
             <div className="machine-id-icon trae-icon">
@@ -196,36 +235,36 @@ export function Settings({ onToast }: SettingsProps) {
               </svg>
             </div>
             <div className="machine-id-title">
-              <span>Trae IDE 安装路径</span>
-              <span className="machine-id-subtitle">用于自动打开 Trae IDE</span>
+              <span>{t("settings.path_label")}</span>
+              <span className="machine-id-subtitle">{t("settings.path_subtitle")}</span>
             </div>
           </div>
           <div className="machine-id-value">
-            <code>{traePathLoading ? "加载中..." : (traePath || "未设置")}</code>
+            <code>{traePathLoading ? t("common.loading") : (traePath || t("settings.path_not_set"))}</code>
           </div>
           <div className="machine-id-actions">
             <button
               className="machine-id-btn"
               onClick={handleScanTraePath}
               disabled={scanning}
-              title="自动扫描"
+              title={t("settings.auto_scan")}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" />
-                <path d="M21 21l-4.35-4.35" />
+                <path d="M21 21l-4.3-4.3" />
               </svg>
-              {scanning ? "扫描中..." : "自动扫描"}
+              {scanning ? t("common.loading") : t("settings.auto_scan")}
             </button>
             <button
               className="machine-id-btn"
-              onClick={handleSetTraePath}
-              title="手动设置"
+              onClick={handleManualSetTraePath}
+              title={t("settings.manual_set")}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
               </svg>
-              手动设置
+              {t("settings.manual_set")}
             </button>
           </div>
           <div className="machine-id-tip">
@@ -234,17 +273,17 @@ export function Settings({ onToast }: SettingsProps) {
               <path d="M12 16v-4" />
               <path d="M12 8h.01" />
             </svg>
-            <span>切换账号后会自动打开 Trae IDE。如果自动扫描找不到，请手动设置 Trae.exe 的完整路径。</span>
+            <span>{t("settings.path_tip")}</span>
           </div>
         </div>
       </div>
 
       <div className="settings-section">
-        <h3>通用设置</h3>
+        <h3>{t("settings.general_title")}</h3>
         <div className="setting-item">
           <div className="setting-info">
-            <div className="setting-label">自动刷新</div>
-            <div className="setting-desc">定时自动刷新账号使用量数据</div>
+            <div className="setting-label">{t("settings.auto_refresh")}</div>
+            <div className="setting-desc">{t("settings.auto_refresh_desc")}</div>
           </div>
           <label className="toggle">
             <input type="checkbox" />
@@ -254,42 +293,42 @@ export function Settings({ onToast }: SettingsProps) {
 
         <div className="setting-item">
           <div className="setting-info">
-            <div className="setting-label">刷新间隔</div>
-            <div className="setting-desc">自动刷新的时间间隔（分钟）</div>
+            <div className="setting-label">{t("settings.refresh_interval")}</div>
+            <div className="setting-desc">{t("settings.refresh_interval_desc")}</div>
           </div>
           <select className="setting-select">
-            <option value="5">5 分钟</option>
-            <option value="10">10 分钟</option>
-            <option value="30">30 分钟</option>
-            <option value="60">60 分钟</option>
+            <option value="5">5 {t("settings.minutes")}</option>
+            <option value="10">10 {t("settings.minutes")}</option>
+            <option value="30">30 {t("settings.minutes")}</option>
+            <option value="60">60 {t("settings.minutes")}</option>
           </select>
         </div>
       </div>
 
       <div className="settings-section">
-        <h3>数据管理</h3>
+        <h3>{t("settings.data_management")}</h3>
         <div className="setting-item">
           <div className="setting-info">
-            <div className="setting-label">导出数据</div>
-            <div className="setting-desc">导出所有账号数据为 JSON 文件</div>
+            <div className="setting-label">{t("common.export")}数据</div>
+            <div className="setting-desc">{t("settings.export_desc")}</div>
           </div>
-          <button className="setting-btn">导出</button>
+          <button className="setting-btn">{t("common.export")}</button>
         </div>
 
         <div className="setting-item">
           <div className="setting-info">
-            <div className="setting-label">导入数据</div>
-            <div className="setting-desc">从 JSON 文件导入账号数据</div>
+            <div className="setting-label">{t("common.import")}数据</div>
+            <div className="setting-desc">{t("settings.import_desc")}</div>
           </div>
-          <button className="setting-btn">导入</button>
+          <button className="setting-btn">{t("common.import")}</button>
         </div>
 
         <div className="setting-item danger">
           <div className="setting-info">
-            <div className="setting-label">清空数据</div>
-            <div className="setting-desc">删除所有账号数据（不可恢复）</div>
+            <div className="setting-label">{t("settings.clear_data")}</div>
+            <div className="setting-desc">{t("settings.clear_data_desc")}</div>
           </div>
-          <button className="setting-btn danger">清空</button>
+          <button className="setting-btn danger">{t("common.delete")}</button>
         </div>
       </div>
     </div>

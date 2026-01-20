@@ -1,16 +1,19 @@
+import { useTranslation } from "react-i18next";
+
 interface SidebarProps {
   currentPage: string;
   onNavigate: (page: string) => void;
 }
 
-const menuItems = [
-  { id: "dashboard", label: "仪表盘", icon: "📊" },
-  { id: "accounts", label: "账号管理", icon: "👥" },
-  { id: "settings", label: "设置", icon: "⚙️" },
-  { id: "about", label: "关于", icon: "ℹ️" },
-];
-
 export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
+  const { t } = useTranslation();
+
+  const menuItems = [
+    { id: "dashboard", label: t("nav.dashboard"), icon: "📊" },
+    { id: "accounts", label: t("nav.accounts"), icon: "👥" },
+    { id: "settings", label: t("nav.settings"), icon: "⚙️" },
+    { id: "about", label: t("nav.about"), icon: "ℹ️" },
+  ];
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
