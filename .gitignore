@@ -9,7 +9,6 @@ lerna-debug.log*
 
 # Dependencies
 node_modules
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
@@ -18,7 +17,6 @@ dist
 dist-ssr
 *.local
 src-tauri/target
-src-tauri/Cargo.lock
 
 # Editor directories and files
 .vscode/*
