@@ -46,21 +46,21 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Trae-Auto-linux-amd64-deb
-          path: src-tauri/target/release/bundle/deb/Trae-Auto_*.deb
+          path: src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/Trae-Auto_*.deb
 
       - name: Upload Linux binary
         uses: actions/upload-artifact@v4
         with:
           name: Trae-Auto-linux-amd64-binary
-          path: src-tauri/target/release/trae-auto
+          path: src-tauri/target/x86_64-unknown-linux-gnu/release/trae-auto
 
       - name: Release Linux
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            src-tauri/target/release/bundle/deb/Trae-Auto_*.deb
-            src-tauri/target/release/trae-auto
+            src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/Trae-Auto_*.deb
+            src-tauri/target/x86_64-unknown-linux-gnu/release/trae-auto
 
   mac:
     name: Build macOS arm64
@@ -92,10 +92,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Trae-Auto-macos-arm64-dmg
-          path: src-tauri/target/release/bundle/dmg/Trae-Auto_*.dmg
+          path: src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/Trae-Auto_*.dmg
 
       - name: Release macOS
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: src-tauri/target/release/bundle/dmg/Trae-Auto_*.dmg
+          files: src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/Trae-Auto_*.dmg
