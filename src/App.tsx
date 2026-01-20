@@ -42,6 +42,7 @@ function App() {
     message: string;
     type: "danger" | "warning" | "info";
     onConfirm: () => void;
+    onCancel?: () => void;
   } | null>(null);
 
   // 右键菜单状态
@@ -577,7 +578,7 @@ function App() {
             handleCopyToken(contextMenu.accountId);
             setContextMenu(null);
           }}
-          onSwitchAccount={() => {
+          onSwitch={() => {
             handleSwitchAccount(contextMenu.accountId);
             setContextMenu(null);
           }}

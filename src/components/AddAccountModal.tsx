@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import * as api from "../api";
+import type { Account } from "../types";
 
 interface AddAccountModalProps {
   isOpen: boolean;
@@ -10,19 +11,16 @@ interface AddAccountModalProps {
   onAccountAdded?: () => void;
 }
 
-type AddMode = "manual" | "trae-ide";
-
 export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdded }: AddAccountModalProps) {
   const { t } = useTranslation();
   const [mode, setMode] = useState<"trae_ide" | "manual">("trae_ide");
   const [tokenInput, setTokenInput] = useState("");
   const [cookiesInput, setCookiesInput] = useState("");
-  const [loading, setLoading] = useState(false); // This will be replaced by isReading/isSubmitting
   const [error, setError] = useState("");
 
   // New states for Trae IDE mode
   const [isReading, setIsReading] = useState(false);
-  const [traeAccount, setTraeAccount] = useState<api.TraeAccount | null>(null);
+  const [traeAccount, setTraeAccount] = useState<Account | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false); // For both modes
 
   if (!isOpen) return null;
@@ -104,7 +102,7 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
     setIsSubmitting(true);
     setError("");
     try {
-      await onAdd(traeAccount.token, traeAccount.cookies);
+      await onAdd(traeAccount.jwt_token || "", traeAccount.cookies);
       onToast?.("success", t("accounts.trae_ide_add_success", { email: traeAccount.email }));
       onAccountAdded?.();
       handleClose();
@@ -225,7 +223,7 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
                     <div className="preview-info">
                       <div className="preview-email">{traeAccount.email || traeAccount.name}</div>
                       <div className="preview-plan">
-                        {traeAccount.plan_type} • {traeAccount.fast_request_left} Requests
+                        {traeAccount.plan_type}
                       </div>
                     </div>
                   </div>
