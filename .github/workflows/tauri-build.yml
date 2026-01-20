@@ -3,8 +3,12 @@ name: Tauri multi-platform build
 on:
   push:
     branches: ["main"]
+    tags: ["v*"]
   pull_request:
     branches: ["main"]
+
+permissions:
+  contents: write
 
 jobs:
   linux:
@@ -50,6 +54,14 @@ jobs:
           name: Trae-Auto-linux-amd64-binary
           path: src-tauri/target/release/trae-auto
 
+      - name: Release Linux
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            src-tauri/target/release/bundle/deb/Trae-Auto_*.deb
+            src-tauri/target/release/trae-auto
+
   mac:
     name: Build macOS arm64
     runs-on: macos-14
@@ -81,3 +93,9 @@ jobs:
         with:
           name: Trae-Auto-macos-arm64-dmg
           path: src-tauri/target/release/bundle/dmg/Trae-Auto_*.dmg
+
+      - name: Release macOS
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: src-tauri/target/release/bundle/dmg/Trae-Auto_*.dmg
