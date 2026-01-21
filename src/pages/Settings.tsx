@@ -309,7 +309,7 @@ export function Settings({ onToast }: SettingsProps) {
         <h3>{t("settings.data_management")}</h3>
         <div className="setting-item">
           <div className="setting-info">
-            <div className="setting-label">{t("common.export")}数据</div>
+            <div className="setting-label">{t("common.export")}</div>
             <div className="setting-desc">{t("settings.export_desc")}</div>
           </div>
           <button className="setting-btn">{t("common.export")}</button>
@@ -317,7 +317,7 @@ export function Settings({ onToast }: SettingsProps) {
 
         <div className="setting-item">
           <div className="setting-info">
-            <div className="setting-label">{t("common.import")}数据</div>
+            <div className="setting-label">{t("common.import")}</div>
             <div className="setting-desc">{t("settings.import_desc")}</div>
           </div>
           <button className="setting-btn">{t("common.import")}</button>

@@ -342,7 +342,7 @@ npm run tauri build
 ### Q5: 应用数据存储在哪里？
 
 **A:**
-- Windows: `%APPDATA%\com.sauce.trae-auto\`
+- Windows: `%APPDATA%\com.sauce.trae-account-manager\`
 - 包含账号信息、配置等数据
 
 ### Q6: 支持 macOS 吗？
@@ -393,8 +393,8 @@ npm run tauri build
 
 ### Build commands
 
-- `npm run build:linux` – rebuilds the frontend and runs `tauri build --target x86_64-unknown-linux-gnu`, yielding `src-tauri/target/release/bundle/deb/Trae-Auto.deb` and the raw binary at `src-tauri/target/release/trae-auto`.
-- `npm run build:mac` – rebuilds the frontend and runs `tauri build --target aarch64-apple-darwin`; outputs `src-tauri/target/release/bundle/dmg/Trae-Auto.dmg`.
+- `npm run build:linux` – rebuilds the frontend and runs `tauri build --target x86_64-unknown-linux-gnu`, yielding `src-tauri/target/release/bundle/deb/Trae Account Manager.deb` and the raw binary at `src-tauri/target/release/trae-account-manager`.
+- `npm run build:mac` – rebuilds the frontend and runs `tauri build --target aarch64-apple-darwin`; outputs `src-tauri/target/release/bundle/dmg/Trae Account Manager.dmg`.
 - Continuous Integration mirrors these commands (see `.github/workflows/tauri-build.yml`) and uploads the named artifacts for releases.
 - Include the raw Linux binary alongside the `.deb` when preparing packages for distribution.
 

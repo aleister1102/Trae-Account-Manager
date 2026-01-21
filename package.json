@@ -1,5 +1,5 @@
 {
-  "name": "tauri-app",
+  "name": "trae-account-manager",
   "private": true,
   "version": "0.1.1",
   "type": "module",
@@ -9,7 +9,10 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "build:linux": "npm run build && npm run tauri -- build --target x86_64-unknown-linux-gnu",
-    "build:mac": "npm run build && npm run tauri -- build --target aarch64-apple-darwin"
+    "build:linux-arm": "npm run build && npm run tauri -- build --target aarch64-unknown-linux-gnu",
+    "build:mac": "npm run build && npm run tauri -- build --target aarch64-apple-darwin",
+    "build:mac-intel": "npm run build && npm run tauri -- build --target x86_64-apple-darwin",
+    "build:windows": "npm run build && npm run tauri -- build --target x86_64-pc-windows-msvc"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

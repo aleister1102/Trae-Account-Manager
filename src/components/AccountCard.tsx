@@ -113,7 +113,7 @@ export function AccountCard({ account, usage, selected, onSelect, onContextMenu 
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
               <path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" transform="rotate(180 12 12)" />
             </svg>
-            礼包
+            {t("accounts.gift")}
           </span>
         )}
         {account.is_current && (
@@ -128,7 +128,7 @@ export function AccountCard({ account, usage, selected, onSelect, onContextMenu 
 
       <div className="card-usage">
         <div className="usage-header">
-          <span className="usage-label">Fast Requests</span>
+          <span className="usage-label">{t("dashboard.fast_requests")}</span>
           <span className={`usage-percent ${usageLevel}`}>{usagePercent}%</span>
         </div>
         <div className="usage-bar">

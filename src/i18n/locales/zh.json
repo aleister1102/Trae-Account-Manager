@@ -42,6 +42,7 @@
         "remaining_percent": "剩余",
         "usage_distribution": "使用量分布",
         "plan_distribution": "套餐分布",
+        "fast_requests": "快速请求",
         "no_data": "暂无数据",
         "no_data_desc": "请先在“账号管理”中添加账号",
         "account_overview": "账号概览"
@@ -139,6 +140,8 @@
         "no_accounts_desc": "点击上方按钮添加账号，或导入已有账号",
         "gift": "礼包",
         "trae_ide_not_found": "未找到 Trae IDE 登录账号或账号已存在",
+        "trae_ide_not_found_tip": "未发现 Trae IDE 登录数据，请先登录 Trae IDE。",
+        "trae_ide_exists": "该 Trae IDE 账号已存在于列表。",
         "trae_ide_read_failed": "读取 Trae IDE 账号失败",
         "trae_ide_add_success": "成功从 Trae IDE 读取账号: {{email}}",
         "add_account_failed": "添加账号失败",
@@ -155,6 +158,17 @@
         "how_to_get_token_step6": "点击该请求，在右侧找到 Response 标签",
         "how_to_get_token_step7": "复制整个响应内容，粘贴到下方",
         "more_ops": "更多操作"
+    },
+    "usage_events": {
+        "title": "账号使用情况",
+        "start_date": "开始日期",
+        "end_date": "结束日期",
+        "apply": "应用",
+        "loading": "加载中...",
+        "no_records": "暂无使用记录",
+        "cost_info": "费用信息",
+        "total_records": "共 {{count}} 条记录",
+        "load_failed": "加载使用事件失败"
     },
     "settings": {
         "title": "设置",

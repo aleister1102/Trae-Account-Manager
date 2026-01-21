@@ -422,7 +422,7 @@ function App() {
                         checked={selectedIds.size === accounts.length && accounts.length > 0}
                         onChange={handleSelectAll}
                       />
-                      全选 ({selectedIds.size}/{accounts.length})
+                      {t("common.select_all")} ({selectedIds.size}/{accounts.length})
                     </label>
                     {selectedIds.size > 0 && (
                       <div className="batch-actions">
@@ -430,13 +430,13 @@ function App() {
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">
                             <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                           </svg>
-                          刷新
+                          {t("common.refresh")}
                         </button>
                         <button className="batch-btn danger" onClick={handleBatchDelete}>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">
                             <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                           </svg>
-                          删除
+                          {t("common.delete")}
                         </button>
                       </div>
                     )}

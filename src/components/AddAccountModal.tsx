@@ -23,14 +23,14 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
   const [traeAccount, setTraeAccount] = useState<Account | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false); // For both modes
 
-  if (!isOpen) return null;
-
   // Effect to read Trae IDE account when modal opens in trae_ide mode
   useEffect(() => {
     if (isOpen && mode === "trae_ide") {
       readTraeAccountData();
     }
   }, [isOpen, mode]);
+
+  if (!isOpen) return null;
 
   // 从输入中提取 Token
   const extractToken = (input: string): string | null => {
@@ -76,6 +76,21 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
     return null;
   };
 
+  // Helper to translate backend errors
+  const getErrorMessage = (err: any) => {
+    const message = err.message || "";
+    if (message.includes("Trae IDE login data not found")) {
+      return t("accounts.trae_ide_not_found_tip"); // New key for specific instruction
+    }
+    if (message.includes("Trae IDE account already exists")) {
+      return t("accounts.trae_ide_exists");
+    }
+    if (message.includes("Token expired")) {
+      return t("accounts.token_expired");
+    }
+    return message || t("accounts.trae_ide_read_failed");
+  };
+
   // Function to read Trae IDE account data
   const readTraeAccountData = async () => {
     setIsReading(true);
@@ -86,10 +101,11 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
       if (account) {
         setTraeAccount(account);
       } else {
+        // Should ideally not happen if backend returns explicit errors, but handling finding nothing:
         setError(t("accounts.trae_ide_not_found"));
       }
     } catch (err: any) {
-      setError(err.message || t("accounts.trae_ide_read_failed"));
+      setError(getErrorMessage(err));
     } finally {
       setIsReading(false);
     }
@@ -107,8 +123,9 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
       onAccountAdded?.();
       handleClose();
     } catch (err: any) {
-      setError(err.message || t("accounts.add_account_failed"));
-      onToast?.("error", err.message || t("accounts.add_account_failed"));
+      const msg = err.message || t("accounts.add_account_failed");
+      setError(msg);
+      onToast?.("error", msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -166,13 +183,15 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{t("accounts.add_account_title")}</h2>
+          <div className="header-info">
+            <h2>{t("accounts.add_account_title")}</h2>
+          </div>
           <button className="close-btn" onClick={onClose}>
             &times;
           </button>
         </div>
 
-        <div className="modal-tabs">
+        <div className="input-type-tabs">
           <button
             className={`tab-btn ${mode === "trae_ide" ? "active" : ""}`}
             onClick={() => setMode("trae_ide")}
@@ -216,7 +235,7 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
                         <img src={traeAccount.avatar_url} alt="" />
                       ) : (
                         <div className="avatar-placeholder">
-                          {traeAccount.name?.[0].toUpperCase() || "T"}
+                          {traeAccount.name?.charAt(0).toUpperCase() || "T"}
                         </div>
                       )}
                     </div>
@@ -277,12 +296,11 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
                 />
               </div>
 
-              {error && <div className="form-error">{error}</div>}
+              {error && <div className="error-message">{error}</div>}
 
-              <div className="form-actions">
+              <div className="modal-actions">
                 <button
                   type="button"
-                  className="modal-btn-secondary"
                   onClick={handleClose}
                   disabled={isSubmitting}
                 >
@@ -290,7 +308,7 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
                 </button>
                 <button
                   type="submit"
-                  className="modal-btn-primary"
+                  className="primary"
                   disabled={isSubmitting || !tokenInput.trim()}
                 >
                   {isSubmitting ? t("accounts.adding") : t("accounts.add_account")}

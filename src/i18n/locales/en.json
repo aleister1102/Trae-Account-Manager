@@ -42,6 +42,7 @@
         "remaining_percent": "Remaining",
         "usage_distribution": "Usage Distribution",
         "plan_distribution": "Plan Distribution",
+        "fast_requests": "Fast Requests",
         "no_data": "No Data",
         "no_data_desc": "Please add an account in 'Accounts' first",
         "account_overview": "Account Overview"
@@ -139,6 +140,8 @@
         "no_accounts_desc": "Click the button above to add or import accounts",
         "gift": "Gift",
         "trae_ide_not_found": "Trae IDE account not found or already exists",
+        "trae_ide_not_found_tip": "Trae IDE login data not found. Please log in to Trae IDE first.",
+        "trae_ide_exists": "Trae IDE account already exists in the list.",
         "trae_ide_read_failed": "Failed to read Trae IDE account",
         "trae_ide_add_success": "Successfully added account from Trae IDE: {{email}}",
         "add_account_failed": "Failed to add account",
@@ -155,6 +158,17 @@
         "how_to_get_token_step6": "Go to Response tab",
         "how_to_get_token_step7": "Copy and paste the response here",
         "more_ops": "More Operations"
+    },
+    "usage_events": {
+        "title": "Account Usage",
+        "start_date": "Start Date",
+        "end_date": "End Date",
+        "apply": "Apply",
+        "loading": "Loading...",
+        "no_records": "No usage records",
+        "cost_info": "Cost Information",
+        "total_records": "Total {{count}} records",
+        "load_failed": "Failed to load usage events"
     },
     "settings": {
         "title": "Settings",

@@ -81,7 +81,7 @@ export function Dashboard({ accounts }: DashboardProps) {
             <div className="stat-card-info">
               <span className="stat-card-label">{t('dashboard.total_quota')}</span>
               <span className="stat-card-value">{totalLimit}</span>
-              <span className="stat-card-change">Fast Requests</span>
+              <span className="stat-card-change">{t('dashboard.fast_requests')}</span>
             </div>
             <div className="stat-card-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

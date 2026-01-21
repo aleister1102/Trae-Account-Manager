@@ -4749,7 +4749,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trae-auto"
+name = "trae-account-manager"
 version = "0.1.0"
 dependencies = [
  "anyhow",
