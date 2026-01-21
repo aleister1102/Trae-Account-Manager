@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import * as api from "../api";
+import type { Account } from "../types";
 
 interface AddAccountModalProps {
   isOpen: boolean;
@@ -9,14 +11,24 @@ interface AddAccountModalProps {
   onAccountAdded?: () => void;
 }
 
-type AddMode = "manual" | "trae-ide";
-
 export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdded }: AddAccountModalProps) {
-  const [mode, setMode] = useState<AddMode>("trae-ide");
+  const { t } = useTranslation();
+  const [mode, setMode] = useState<"trae_ide" | "manual">("trae_ide");
   const [tokenInput, setTokenInput] = useState("");
   const [cookiesInput, setCookiesInput] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // New states for Trae IDE mode
+  const [isReading, setIsReading] = useState(false);
+  const [traeAccount, setTraeAccount] = useState<Account | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false); // For both modes
+
+  // Effect to read Trae IDE account when modal opens in trae_ide mode
+  useEffect(() => {
+    if (isOpen && mode === "trae_ide") {
+      readTraeAccountData();
+    }
+  }, [isOpen, mode]);
 
   if (!isOpen) return null;
 
@@ -64,44 +76,78 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
     return null;
   };
 
-  // 读取 Trae IDE 账号
-  const handleReadTraeAccount = async () => {
-    setLoading(true);
-    setError("");
+  // Helper to translate backend errors
+  const getErrorMessage = (err: any) => {
+    const message = err.message || "";
+    if (message.includes("Trae IDE login data not found")) {
+      return t("accounts.trae_ide_not_found_tip"); // New key for specific instruction
+    }
+    if (message.includes("Trae IDE account already exists")) {
+      return t("accounts.trae_ide_exists");
+    }
+    if (message.includes("Token expired")) {
+      return t("accounts.token_expired");
+    }
+    return message || t("accounts.trae_ide_read_failed");
+  };
 
+  // Function to read Trae IDE account data
+  const readTraeAccountData = async () => {
+    setIsReading(true);
+    setError("");
+    setTraeAccount(null);
     try {
       const account = await api.readTraeAccount();
       if (account) {
-        onToast?.("success", `成功从 Trae IDE 读取账号: ${account.email}`);
-        onAccountAdded?.();
-        handleClose();
+        setTraeAccount(account);
       } else {
-        setError("未找到 Trae IDE 登录账号或账号已存在");
+        // Should ideally not happen if backend returns explicit errors, but handling finding nothing:
+        setError(t("accounts.trae_ide_not_found"));
       }
     } catch (err: any) {
-      setError(err.message || "读取 Trae IDE 账号失败");
+      setError(getErrorMessage(err));
     } finally {
-      setLoading(false);
+      setIsReading(false);
+    }
+  };
+
+  // Handle Trae IDE import
+  const handleTraeIDEImport = async () => {
+    if (!traeAccount) return;
+
+    setIsSubmitting(true);
+    setError("");
+    try {
+      await onAdd(traeAccount.jwt_token || "", traeAccount.cookies);
+      onToast?.("success", t("accounts.trae_ide_add_success", { email: traeAccount.email }));
+      onAccountAdded?.();
+      handleClose();
+    } catch (err: any) {
+      const msg = err.message || t("accounts.add_account_failed");
+      setError(msg);
+      onToast?.("error", msg);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   // 手动添加账号
-  const handleManualSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!tokenInput.trim()) {
-      setError("请输入 Token 或 API 响应");
+      setError(t("accounts.token_required"));
       return;
     }
 
-    setLoading(true);
+    setIsSubmitting(true);
     setError("");
 
     try {
       const token = extractToken(tokenInput);
 
       if (!token) {
-        setError("无法识别 Token，请确保输入正确的 Token 或 GetUserToken 接口响应");
-        setLoading(false);
+        setError(t("accounts.token_unrecognized"));
+        setIsSubmitting(false);
         return;
       }
 
@@ -111,11 +157,14 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
       await onAdd(token, cookies);
       setTokenInput("");
       setCookiesInput("");
+      onToast?.("success", t("accounts.manual_add_success"));
+      onAccountAdded?.();
       onClose();
     } catch (err: any) {
-      setError(err.message || "添加账号失败");
+      setError(err.message || t("accounts.add_account_failed"));
+      onToast?.("error", err.message || t("accounts.add_account_failed"));
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -123,165 +172,151 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
     setError("");
     setTokenInput("");
     setCookiesInput("");
-    setMode("trae-ide");
+    setMode("trae_ide"); // Reset to trae_ide mode
+    setTraeAccount(null); // Clear trae account data
+    setIsReading(false);
+    setIsSubmitting(false);
     onClose();
   };
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-content add-account-modal" onClick={(e) => e.stopPropagation()}>
-        <h2>添加账号</h2>
-
-        {/* 添加方式选择 */}
-        <div className="add-mode-tabs">
-          <button
-            className={`mode-tab ${mode === "trae-ide" ? "active" : ""}`}
-            onClick={() => setMode("trae-ide")}
-            disabled={loading}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-              <line x1="12" y1="22.08" x2="12" y2="12"/>
-            </svg>
-            从 Trae IDE 读取
-          </button>
-          <button
-            className={`mode-tab ${mode === "manual" ? "active" : ""}`}
-            onClick={() => setMode("manual")}
-            disabled={loading}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
-            手动输入 Token
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="header-info">
+            <h2>{t("accounts.add_account_title")}</h2>
+          </div>
+          <button className="close-btn" onClick={onClose}>
+            &times;
           </button>
         </div>
 
-        {mode === "trae-ide" ? (
-          /* Trae IDE 读取模式 */
-          <div className="trae-ide-mode">
-            <div className="mode-description">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                <line x1="12" y1="22.08" x2="12" y2="12"/>
-              </svg>
-              <h3>自动检测本地 Trae IDE 账号</h3>
-              <p>系统会自动读取本地 Trae IDE 客户端当前登录的账号信息，无需手动输入任何内容。</p>
-              <div className="mode-features">
-                <div className="feature-item">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                  <span>自动获取 Token</span>
-                </div>
-                <div className="feature-item">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                  <span>自动获取用户信息</span>
-                </div>
-                <div className="feature-item">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                  <span>一键导入</span>
+        <div className="input-type-tabs">
+          <button
+            className={`tab-btn ${mode === "trae_ide" ? "active" : ""}`}
+            onClick={() => setMode("trae_ide")}
+            disabled={isSubmitting || isReading}
+          >
+            {t("accounts.mode_trae_ide")}
+          </button>
+          <button
+            className={`tab-btn ${mode === "manual" ? "active" : ""}`}
+            onClick={() => setMode("manual")}
+            disabled={isSubmitting || isReading}
+          >
+            {t("accounts.mode_manual")}
+          </button>
+        </div>
+
+        <div className="modal-body">
+          {mode === "trae_ide" ? (
+            <div className="trae-ide-import">
+              <div className="trae-ide-desc">
+                <div className="desc-icon">💻</div>
+                <div className="desc-text">
+                  <h3>{t("accounts.trae_ide_desc_title")}</h3>
+                  <p>
+                    {t("accounts.trae_ide_desc_p")}
+                  </p>
                 </div>
               </div>
-            </div>
 
-            {error && <div className="error-message">{error}</div>}
+              <div className="read-result">
+                {isReading && (
+                  <div className="reading-status">
+                    <div className="spinner-small"></div>
+                    <span>{t("accounts.reading")}</span>
+                  </div>
+                )}
+                {traeAccount && !isReading && (
+                  <div className="account-preview-mini">
+                    <div className="preview-avatar">
+                      {traeAccount.avatar_url ? (
+                        <img src={traeAccount.avatar_url} alt="" />
+                      ) : (
+                        <div className="avatar-placeholder">
+                          {traeAccount.name?.charAt(0).toUpperCase() || "T"}
+                        </div>
+                      )}
+                    </div>
+                    <div className="preview-info">
+                      <div className="preview-email">{traeAccount.email || traeAccount.name}</div>
+                      <div className="preview-plan">
+                        {traeAccount.plan_type}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {!traeAccount && !isReading && error && (
+                  <div className="read-error">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    {error}
+                  </div>
+                )}
+              </div>
 
-            <div className="modal-actions">
-              <button type="button" onClick={handleClose} disabled={loading}>
-                取消
-              </button>
               <button
-                type="button"
-                className="primary"
-                onClick={handleReadTraeAccount}
-                disabled={loading}
+                className="action-btn-large"
+                onClick={handleTraeIDEImport}
+                disabled={isSubmitting || isReading || !traeAccount}
               >
-                {loading ? "读取中..." : "读取本地账号"}
+                {isSubmitting ? t("accounts.adding") : t("accounts.one_click_import")}
               </button>
             </div>
-          </div>
-        ) : (
-          /* 手动输入模式 */
-          <form onSubmit={handleManualSubmit}>
-            {/* Token 输入 */}
-            <div className="form-section">
-              <label className="form-label">
-                Token <span className="required">*</span>
-              </label>
-              <p className="form-desc">
-                用于获取账号使用量数据（必填）
-              </p>
-              <div className="token-help">
-                <details>
-                  <summary>如何获取 Token？</summary>
-                  <ol>
-                    <li>打开 <a href="https://www.trae.ai/account-setting#usage" target="_blank" rel="noopener noreferrer">trae.ai 账号设置页面</a> 并登录</li>
-                    <li>按 <kbd>F12</kbd> 打开开发者工具</li>
-                    <li>切换到 <strong>Network</strong> 标签</li>
-                    <li>刷新页面</li>
-                    <li>在请求列表中找到 <code>GetUserToken</code></li>
-                    <li>点击该请求，在右侧找到 <strong>Response</strong> 标签</li>
-                    <li>复制整个响应内容，粘贴到下方</li>
-                  </ol>
-                </details>
+          ) : (
+            <form onSubmit={handleSubmit} className="manual-form">
+              <div className="form-group">
+                <label>
+                  {t("accounts.token_label")} <span>*</span>
+                </label>
+                <div className="input-desc">
+                  {t("accounts.token_desc")}
+                </div>
+                <textarea
+                  value={tokenInput}
+                  onChange={(e) => setTokenInput(e.target.value)}
+                  placeholder={t("accounts.placeholder_token")}
+                  required
+                  disabled={isSubmitting}
+                />
               </div>
-              <textarea
-                value={tokenInput}
-                onChange={(e) => setTokenInput(e.target.value)}
-                placeholder='粘贴 Token 或 GetUserToken 接口响应...'
-                rows={6}
-                disabled={loading}
-              />
-            </div>
 
-            {/* Cookies 输入（可选） */}
-            <div className="form-section">
-              <label className="form-label">
-                Cookies <span className="optional">（可选）</span>
-              </label>
-              <p className="form-desc">
-                用于获取用户名、邮箱和头像（不填则显示默认信息）
-              </p>
-              <div className="token-help">
-                <details>
-                  <summary>如何获取 Cookies？</summary>
-                  <ol>
-                    <li>在上面获取 Token 的同一个页面</li>
-                    <li>在 <strong>Network</strong> 标签中点击任意请求</li>
-                    <li>在右侧 <strong>Headers</strong> 中找到 <code>Cookie</code> 字段</li>
-                    <li>复制整个 Cookie 值（很长的一串）</li>
-                  </ol>
-                </details>
+              <div className="form-group">
+                <label>{t("accounts.cookies_label")}</label>
+                <div className="input-desc">
+                  {t("accounts.cookies_desc")}
+                </div>
+                <textarea
+                  value={cookiesInput}
+                  onChange={(e) => setCookiesInput(e.target.value)}
+                  placeholder={t("accounts.placeholder_cookies")}
+                  disabled={isSubmitting}
+                />
               </div>
-              <textarea
-                value={cookiesInput}
-                onChange={(e) => setCookiesInput(e.target.value)}
-                placeholder='粘贴 Cookie 值（可选，用于获取用户信息）...'
-                rows={4}
-                disabled={loading}
-              />
-            </div>
 
-            {error && <div className="error-message">{error}</div>}
+              {error && <div className="error-message">{error}</div>}
 
-            <div className="modal-actions">
-              <button type="button" onClick={handleClose} disabled={loading}>
-                取消
-              </button>
-              <button type="submit" className="primary" disabled={loading}>
-                {loading ? "添加中..." : "添加账号"}
-              </button>
-            </div>
-          </form>
-        )}
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  disabled={isSubmitting}
+                >
+                  {t("common.cancel")}
+                </button>
+                <button
+                  type="submit"
+                  className="primary"
+                  disabled={isSubmitting || !tokenInput.trim()}
+                >
+                  {isSubmitting ? t("accounts.adding") : t("accounts.add_account")}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

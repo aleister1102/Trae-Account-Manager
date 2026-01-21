@@ -1,0 +1,97 @@
+name: Tauri multi-platform build
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "macos-latest" # macOS ARM64
+            args: "--target aarch64-apple-darwin"
+            target: "aarch64-apple-darwin"
+            name: "macos-arm64"
+            bundle: "dmg"
+            artifact_name: "Trae-Auto-macos-arm64-dmg"
+            path: "src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg"
+
+          - platform: "macos-latest" # macOS Intel (Compiled on ARM runner)
+            args: "--target x86_64-apple-darwin"
+            target: "x86_64-apple-darwin"
+            name: "macos-x86_64"
+            bundle: "dmg"
+            artifact_name: "Trae-Auto-macos-x64-dmg"
+            path: "src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg"
+
+          - platform: "ubuntu-24.04"
+            args: "--target x86_64-unknown-linux-gnu"
+            target: "x86_64-unknown-linux-gnu"
+            name: "linux-x86_64"
+            bundle: "deb"
+            artifact_name: "Trae-Auto-linux-amd64-deb"
+            path: "src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/*.deb"
+
+          - platform: "ubuntu-24.04-arm"
+            args: "--target aarch64-unknown-linux-gnu"
+            target: "aarch64-unknown-linux-gnu"
+            name: "linux-arm64"
+            bundle: "deb"
+            artifact_name: "Trae-Auto-linux-arm64-deb"
+            path: "src-tauri/target/aarch64-unknown-linux-gnu/release/bundle/deb/*.deb"
+
+          - platform: "windows-latest"
+            args: "--target x86_64-pc-windows-msvc"
+            target: "x86_64-pc-windows-msvc"
+            name: "windows-x86_64"
+            bundle: "msi"
+            artifact_name: "Trae-Auto-windows-x64-msi"
+            path: "src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi"
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install system dependencies (Linux)
+        if: contains(matrix.platform, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev xdg-utils
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build artifact
+        run: npm run tauri -- build ${{ matrix.args }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.path }}
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ${{ matrix.path }}

@@ -342,7 +342,7 @@ npm run tauri build
 ### Q5: 应用数据存储在哪里？
 
 **A:**
-- Windows: `%APPDATA%\com.sauce.trae-auto\`
+- Windows: `%APPDATA%\com.sauce.trae-account-manager\`
 - 包含账号信息、配置等数据
 
 ### Q6: 支持 macOS 吗？
@@ -371,6 +371,7 @@ npm run tauri build
 - **Reqwest** - HTTP 客户端
 - **Serde** - 序列化/反序列化
 
+---
 ### 功能模块
 
 - **账号管理** - 多账号存储与切换
@@ -378,6 +379,29 @@ npm run tauri build
 - **机器码管理** - Windows 注册表操作
 - **文件系统** - Trae IDE 配置文件操作
 - **进程管理** - Trae IDE 进程控制
+
+---
+
+## 🧰 Platform builds (Linux amd64 & macOS Apple silicon)
+
+### Prerequisites
+
+- **Node**: `npm install` (Node 18+).
+- **Rust toolchain**: `rustup toolchain install stable` then `rustup target add x86_64-unknown-linux-gnu aarch64-apple-darwin`.
+- **Linux dependencies** (Ubuntu/Debian): `sudo apt install -y libgtk-3-dev libayatana-appindicator3-dev libssl-dev libdbus-1-dev pkg-config libwebkit2gtk-4.0-dev`.
+- **macOS dependencies** (Apple silicon): `brew install rust gtk+3 pkg-config`.
+
+### Build commands
+
+- `npm run build:linux` – rebuilds the frontend and runs `tauri build --target x86_64-unknown-linux-gnu`, yielding `src-tauri/target/release/bundle/deb/Trae Account Manager.deb` and the raw binary at `src-tauri/target/release/trae-account-manager`.
+- `npm run build:mac` – rebuilds the frontend and runs `tauri build --target aarch64-apple-darwin`; outputs `src-tauri/target/release/bundle/dmg/Trae Account Manager.dmg`.
+- Continuous Integration mirrors these commands (see `.github/workflows/tauri-build.yml`) and uploads the named artifacts for releases.
+- Include the raw Linux binary alongside the `.deb` when preparing packages for distribution.
+
+### Security audits
+
+- Run `$audit-security .` (or `/audit-security src src-tauri`) before merging or releasing to check for malicious code and critical bugs.
+- Re-run the audit after dependency updates, especially Rust/Tauri build changes.
 
 ---
 

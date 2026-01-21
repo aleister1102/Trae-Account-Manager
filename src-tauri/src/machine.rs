@@ -56,14 +56,14 @@ pub fn reset_machine_guid() -> Result<String> {
 
 /// 获取 Trae IDE 数据目录路径
 #[cfg(target_os = "windows")]
-fn get_trae_data_path() -> Result<PathBuf> {
+pub fn get_trae_data_path() -> Result<PathBuf> {
     let appdata = std::env::var("APPDATA")
         .map_err(|_| anyhow!("无法获取 APPDATA 环境变量"))?;
     Ok(PathBuf::from(appdata).join("Trae"))
 }
 
 #[cfg(target_os = "macos")]
-fn get_trae_data_path() -> Result<PathBuf> {
+pub fn get_trae_data_path() -> Result<PathBuf> {
     let home = std::env::var("HOME")
         .map_err(|_| anyhow!("无法获取 HOME 环境变量"))?;
     Ok(PathBuf::from(home)
@@ -73,7 +73,7 @@ fn get_trae_data_path() -> Result<PathBuf> {
 }
 
 #[cfg(not(any(target_os = "windows", target_os = "macos")))]
-fn get_trae_data_path() -> Result<PathBuf> {
+pub fn get_trae_data_path() -> Result<PathBuf> {
     Err(anyhow!("此功能仅支持 Windows 和 macOS 系统"))
 }
 
@@ -217,7 +217,7 @@ pub fn kill_trae() -> Result<()> {
 
 /// 获取 Trae IDE 配置文件路径
 fn get_trae_config_path() -> Result<PathBuf> {
-    let proj_dirs = directories::ProjectDirs::from("com", "sauce", "trae-auto")
+    let proj_dirs = directories::ProjectDirs::from("com", "sauce", "trae-account-manager")
         .ok_or_else(|| anyhow!("无法获取应用数据目录"))?;
     let config_dir = proj_dirs.config_dir();
     fs::create_dir_all(config_dir)?;

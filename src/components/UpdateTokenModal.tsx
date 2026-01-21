@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface UpdateTokenModalProps {
   isOpen: boolean;
@@ -7,7 +8,6 @@ interface UpdateTokenModalProps {
   onClose: () => void;
   onUpdate: (accountId: string, token: string) => Promise<void>;
 }
-
 export function UpdateTokenModal({
   isOpen,
   accountId,
@@ -15,6 +15,7 @@ export function UpdateTokenModal({
   onClose,
   onUpdate,
 }: UpdateTokenModalProps) {
+  const { t } = useTranslation();
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -68,7 +69,7 @@ export function UpdateTokenModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) {
-      setError("请输入新的 Token");
+      setError(t("accounts.token_required") || "Please enter a token");
       return;
     }
 
@@ -79,7 +80,7 @@ export function UpdateTokenModal({
       const token = extractToken(inputValue);
 
       if (!token) {
-        setError("无法识别 Token，请确保输入正确的 Token 或 GetUserToken 接口响应");
+        setError(t("accounts.token_unrecognized") || "Unrecognized token");
         setLoading(false);
         return;
       }
@@ -88,7 +89,7 @@ export function UpdateTokenModal({
       setInputValue("");
       onClose();
     } catch (err: any) {
-      setError(err.message || "更新 Token 失败");
+      setError(err.message || t("accounts.update_token_failed") || "Failed to update token");
     } finally {
       setLoading(false);
     }
@@ -103,25 +104,25 @@ export function UpdateTokenModal({
   return (
     <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2>更新 Token</h2>
+        <h2>{t("accounts.update_token")}</h2>
 
         <p className="modal-desc">
-          为账号 <strong>{accountName}</strong> 更新 Token。
+          {t("accounts.update_token_desc", { name: accountName })}
           <br />
-          <small>请确保新 Token 属于同一个用户，否则更新会失败。</small>
+          <small>{t("accounts.update_token_tip")}</small>
         </p>
 
         <div className="token-help">
           <details>
-            <summary>如何获取新 Token？</summary>
+            <summary>{t("accounts.how_to_get_token") || "How to get a token?"}</summary>
             <ol>
-              <li>打开 <a href="https://www.trae.ai/account-setting#usage" target="_blank" rel="noopener noreferrer">trae.ai 账号设置页面</a> 并登录对应账号</li>
-              <li>按 <kbd>F12</kbd> 打开开发者工具</li>
-              <li>切换到 <strong>Network</strong> 标签</li>
-              <li>刷新页面</li>
-   <li>在请求列表中找到 <code>GetUserToken</code></li>
-              <li>点击该请求，在右侧找到 <strong>Response</strong> 标签</li>
-              <li>复制整个响应内容，粘贴到下方</li>
+              <li>{t("accounts.how_to_get_token_step1") || "Open trae.ai settings"}</li>
+              <li>{t("accounts.how_to_get_token_step2") || "Press F12"}</li>
+              <li>{t("accounts.how_to_get_token_step3") || "Network tab"}</li>
+              <li>{t("accounts.how_to_get_token_step4") || "Refresh"}</li>
+              <li>{t("accounts.how_to_get_token_step5") || "Find GetUserToken"}</li>
+              <li>{t("accounts.how_to_get_token_step6") || "Response tab"}</li>
+              <li>{t("accounts.how_to_get_token_step7") || "Copy and paste"}</li>
             </ol>
           </details>
         </div>
@@ -130,7 +131,7 @@ export function UpdateTokenModal({
           <textarea
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder='粘贴新的 Token 或 API 响应...'
+            placeholder={t("accounts.placeholder_token")}
             rows={8}
             disabled={loading}
           />
@@ -139,10 +140,10 @@ export function UpdateTokenModal({
 
           <div className="modal-actions">
             <button type="button" onClick={handleClose} disabled={loading}>
-              取消
+              {t("common.cancel")}
             </button>
             <button type="submit" className="primary" disabled={loading}>
-              {loading ? "更新中..." : "更新 Token"}
+              {loading ? t("common.loading") : t("common.confirm")}
             </button>
           </div>
         </form>

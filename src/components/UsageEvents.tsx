@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { UsageEvent } from '../types';
 import { getUsageEvents } from '../api';
 
@@ -10,6 +11,7 @@ interface UsageEventsProps {
 type TimeFilter = 'today' | '7days' | '30days' | 'custom';
 
 export function UsageEvents({ accountId, onError }: UsageEventsProps) {
+  const { t } = useTranslation();
   const [events, setEvents] = useState<UsageEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('7days');
@@ -78,7 +80,7 @@ export function UsageEvents({ accountId, onError }: UsageEventsProps) {
       setTotal(response.total || 0);
     } catch (error) {
       console.error('Failed to load usage events:', error);
-      onError?.('加载使用事件失败');
+      onError?.(t('usage_events.load_failed'));
       setEvents([]);
       setTotal(0);
     } finally {
@@ -110,7 +112,7 @@ export function UsageEvents({ accountId, onError }: UsageEventsProps) {
   return (
     <div className="usage-events">
       <div className="usage-events-header">
-        <h2>账号使用情况</h2>
+        <h2>{t('usage_events.title')}</h2>
         <div className="usage-events-filters">
           <div className="time-filter-buttons">
             <button
@@ -138,7 +140,7 @@ export function UsageEvents({ accountId, onError }: UsageEventsProps) {
           >
             <span>{formatDateRange()}</span>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </button>
         </div>
@@ -151,14 +153,14 @@ export function UsageEvents({ accountId, onError }: UsageEventsProps) {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              placeholder="开始日期"
+              placeholder={t('usage_events.start_date')}
             />
             <span>-</span>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              placeholder="结束日期"
+              placeholder={t('usage_events.end_date')}
             />
           </div>
           <button
@@ -168,17 +170,17 @@ export function UsageEvents({ accountId, onError }: UsageEventsProps) {
               setShowDatePicker(false);
             }}
           >
-            应用
+            {t('usage_events.apply')}
           </button>
         </div>
       )}
 
       <div className="usage-events-table-container">
         {loading ? (
-          <div className="loading-state">加载中...</div>
+          <div className="loading-state">{t('usage_events.loading')}</div>
         ) : events.length === 0 ? (
           <div className="empty-state">
-            <p>暂无使用记录</p>
+            <p>{t('usage_events.no_records')}</p>
           </div>
         ) : (
           <table className="usage-events-table">
@@ -189,10 +191,10 @@ export function UsageEvents({ accountId, onError }: UsageEventsProps) {
                 <th>Model</th>
                 <th>
                   Bill (USD)
-                  <span className="info-icon" title="费用信息">
+                  <span className="info-icon" title={t('usage_events.cost_info')}>
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                      <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5"/>
-                      <path d="M7 10V7M7 4h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                      <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5" />
+                      <path d="M7 10V7M7 4h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
                   </span>
                 </th>
@@ -222,7 +224,7 @@ export function UsageEvents({ accountId, onError }: UsageEventsProps) {
       </div>
       {total > 0 && (
         <div style={{ marginTop: '12px', fontSize: '14px', color: '#64748b', textAlign: 'right' }}>
-          共 {total} 条记录
+          {t('usage_events.total_records', { count: total })}
         </div>
       )}
     </div>

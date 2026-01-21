@@ -22,7 +22,7 @@ impl AccountManager {
 
     /// 获取数据存储路径
     fn get_data_path() -> Result<PathBuf> {
-        let proj_dirs = directories::ProjectDirs::from("com", "sauce", "trae-auto")
+        let proj_dirs = directories::ProjectDirs::from("com", "sauce", "trae-account-manager")
             .ok_or_else(|| anyhow!("无法获取应用数据目录"))?;
 
         let data_dir = proj_dirs.data_dir();
@@ -540,28 +540,7 @@ impl AccountManager {
 
     /// 从 Trae IDE 读取当前登录账号
     pub async fn read_trae_ide_account(&mut self) -> Result<Option<Account>> {
-        // 获取 Trae IDE 配置文件路径（跨平台支持）
-        #[cfg(target_os = "windows")]
-        let trae_data_path = {
-            let appdata = std::env::var("APPDATA")
-                .map_err(|_| anyhow!("无法获取 APPDATA 环境变量"))?;
-            PathBuf::from(appdata).join("Trae")
-        };
-        
-        #[cfg(target_os = "macos")]
-        let trae_data_path = {
-            let home = std::env::var("HOME")
-                .map_err(|_| anyhow!("无法获取 HOME 环境变量"))?;
-            PathBuf::from(home)
-                .join("Library")
-                .join("Application Support")
-                .join("Trae")
-        };
-        
-        #[cfg(not(any(target_os = "windows", target_os = "macos")))]
-        let trae_data_path: PathBuf = {
-            return Err(anyhow!("此功能仅支持 Windows 和 macOS 系统"));
-        };
+        let trae_data_path = crate::machine::get_trae_data_path()?;
 
         let storage_path = trae_data_path
             .join("User")
@@ -570,7 +549,7 @@ impl AccountManager {
 
         // 检查文件是否存在
         if !storage_path.exists() {
-            return Ok(None);
+            return Err(anyhow!("未发现 Trae IDE 登录数据，请先登录 Trae IDE。"));
         }
 
         // 读取文件内容
@@ -585,7 +564,7 @@ impl AccountManager {
         let auth_info_str = storage
             .get("iCubeAuthInfo://icube.cloudide")
             .and_then(|v| v.as_str())
-            .ok_or_else(|| anyhow!("未找到 Trae IDE 登录信息"))?;
+            .ok_or_else(|| anyhow!("未在 Trae IDE 中发现登录信息，请确认已登录。"))?;
 
         // 解析嵌套的 JSON 字符串
         let auth_info: serde_json::Value = serde_json::from_str(auth_info_str)
@@ -603,6 +582,11 @@ impl AccountManager {
             .and_then(|v| v.as_str())
             .ok_or_else(|| anyhow!("未找到 User ID"))?
             .to_string();
+
+        // 检查账号是否已存在
+        if self.store.accounts.iter().any(|a| a.user_id == user_id) {
+            return Err(anyhow!("Trae IDE account already exists"));
+        }
 
         let email = auth_info
             .get("account")
@@ -624,12 +608,6 @@ impl AccountManager {
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string();
-
-        // 检查账号是否已存在
-        if self.store.accounts.iter().any(|a| a.user_id == user_id) {
-            println!("[INFO] Trae IDE 账号已存在于账号管理中");
-            return Ok(None);
-        }
 
         // 使用 Token 获取完整的用户信息
         let client = TraeApiClient::new_with_token(&token)?;

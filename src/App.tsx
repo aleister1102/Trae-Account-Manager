@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Sidebar } from "./components/Sidebar";
 import { AccountCard } from "./components/AccountCard";
 import { AccountListItem } from "./components/AccountListItem";
@@ -22,6 +23,7 @@ interface AccountWithUsage extends AccountBrief {
 type ViewMode = "grid" | "list";
 
 function App() {
+  const { t } = useTranslation();
   const [accounts, setAccounts] = useState<AccountWithUsage[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showAddModal, setShowAddModal] = useState(false);
@@ -40,6 +42,7 @@ function App() {
     message: string;
     type: "danger" | "warning" | "info";
     onConfirm: () => void;
+    onCancel?: () => void;
   } | null>(null);
 
   // 右键菜单状态
@@ -90,7 +93,7 @@ function App() {
       );
       setAccounts(accountsWithUsage);
     } catch (err: any) {
-      setError(err.message || "加载账号失败");
+      setError(err.message || t("accounts.load_failed"));
     } finally {
       setLoading(false);
     }
@@ -104,7 +107,7 @@ function App() {
   // 添加账号
   const handleAddAccount = async (token: string, cookies?: string) => {
     await api.addAccountByToken(token, cookies);
-    addToast("success", "账号添加成功");
+    addToast("success", t("accounts.add_success"));
     await loadAccounts();
   };
 
@@ -112,8 +115,8 @@ function App() {
   const handleDeleteAccount = async (accountId: string) => {
     setConfirmModal({
       isOpen: true,
-      title: "删除账号",
-      message: "确定要删除此账号吗？删除后无法恢复。",
+      title: t("accounts.delete_confirm_title"),
+      message: t("accounts.delete_confirm_msg"),
       type: "danger",
       onConfirm: async () => {
         try {
@@ -123,13 +126,14 @@ function App() {
             next.delete(accountId);
             return next;
           });
-          addToast("success", "账号已删除");
+          addToast("success", t("accounts.delete_success"));
           await loadAccounts();
         } catch (err: any) {
-          addToast("error", err.message || "删除账号失败");
+          addToast("error", err.message || t("accounts.delete_failed"));
         }
         setConfirmModal(null);
       },
+      onCancel: () => setConfirmModal(null),
     });
   };
 
@@ -147,9 +151,9 @@ function App() {
       setAccounts((prev) =>
         prev.map((a) => (a.id === accountId ? { ...a, usage } : a))
       );
-      addToast("success", "数据刷新成功");
+      addToast("success", t("accounts.refresh_success"));
     } catch (err: any) {
-      addToast("error", err.message || "刷新失败");
+      addToast("error", err.message || t("accounts.refresh_failed"));
     } finally {
       setRefreshingIds((prev) => {
         const next = new Set(prev);
@@ -193,12 +197,12 @@ function App() {
       const account = await api.getAccount(accountId);
       if (account.jwt_token) {
         await navigator.clipboard.writeText(account.jwt_token);
-        addToast("success", "Token 已复制到剪贴板");
+        addToast("success", t("accounts.copy_token_success"));
       } else {
-        addToast("warning", "该账号没有有效的 Token");
+        addToast("warning", t("accounts.no_token_warning"));
       }
     } catch (err: any) {
-      addToast("error", err.message || "获取 Token 失败");
+      addToast("error", err.message || t("accounts.get_token_failed"));
     }
   };
 
@@ -209,18 +213,18 @@ function App() {
 
     setConfirmModal({
       isOpen: true,
-      title: "切换账号",
-      message: `确定要切换到账号 "${account.email || account.name}" 吗？\n\n系统将自动关闭 Trae IDE 并切换登录信息。`,
+      title: t("accounts.switch_confirm_title"),
+      message: t("accounts.switch_confirm_msg", { name: account.email || account.name }),
       type: "warning",
       onConfirm: async () => {
         setConfirmModal(null);
-        addToast("info", "正在切换账号，请稍候...");
+        addToast("info", t("accounts.switching"));
         try {
           await api.switchAccount(accountId);
           await loadAccounts();
-          addToast("success", "账号切换成功，请重新打开 Trae IDE");
+          addToast("success", t("accounts.switch_success"));
         } catch (err: any) {
-          addToast("error", err.message || "切换账号失败");
+          addToast("error", err.message || t("accounts.switch_failed"));
         }
       },
     });
@@ -241,7 +245,7 @@ function App() {
       setAccounts((prev) =>
         prev.map((a) => (a.id === accountId ? { ...a, usage } : a))
       );
-      addToast("success", "Token 更新成功，数据已刷新");
+      addToast("success", t("accounts.update_token_success"));
     } catch (err: any) {
       throw err; // 让弹窗显示错误
     }
@@ -265,19 +269,19 @@ function App() {
 
     setConfirmModal({
       isOpen: true,
-      title: "获取礼包",
-      message: `确定要为账号 "${account.email || account.name}" 领取周年礼包吗？\n\n领取后将自动刷新账号额度。`,
+      title: t("accounts.claim_gift_confirm_title"),
+      message: t("accounts.claim_gift_confirm_msg", { name: account.email || account.name }),
       type: "info",
       onConfirm: async () => {
         setConfirmModal(null);
-        addToast("info", "正在领取礼包，请稍候...");
+        addToast("info", t("accounts.claiming_gift"));
         try {
           await api.claimGift(accountId);
           // 刷新账号数据
           await handleRefreshAccount(accountId);
-          addToast("success", "礼包领取成功！额度已更新");
+          addToast("success", t("accounts.claim_gift_success"));
         } catch (err: any) {
-          addToast("error", err.message || "领取礼包失败");
+          addToast("error", err.message || t("accounts.claim_gift_failed"));
         }
       },
     });
@@ -296,9 +300,9 @@ function App() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      addToast("success", `已导出 ${accounts.length} 个账号`);
+      addToast("success", t("accounts.export_success", { count: accounts.length }));
     } catch (err: any) {
-      addToast("error", err.message || "导出失败");
+      addToast("error", err.message || t("accounts.export_failed"));
     }
   };
 
@@ -314,10 +318,10 @@ function App() {
       try {
         const text = await file.text();
         const count = await api.importAccounts(text);
-        addToast("success", `成功导入 ${count} 个账号`);
+        addToast("success", t("accounts.import_success", { count }));
         await loadAccounts();
       } catch (err: any) {
-        addToast("error", err.message || "导入失败");
+        addToast("error", err.message || t("accounts.import_failed"));
       }
     };
     input.click();
@@ -326,11 +330,11 @@ function App() {
   // 批量刷新选中账号
   const handleBatchRefresh = async () => {
     if (selectedIds.size === 0) {
-      addToast("warning", "请先选择要刷新的账号");
+      addToast("warning", t("accounts.select_to_refresh"));
       return;
     }
 
-    addToast("info", `正在刷新 ${selectedIds.size} 个账号...`);
+    addToast("info", t("accounts.refreshing_batch", { count: selectedIds.size }));
 
     for (const id of selectedIds) {
       await handleRefreshAccount(id);
@@ -340,14 +344,14 @@ function App() {
   // 批量删除选中账号
   const handleBatchDelete = () => {
     if (selectedIds.size === 0) {
-      addToast("warning", "请先选择要删除的账号");
+      addToast("warning", t("accounts.select_to_delete"));
       return;
     }
 
     setConfirmModal({
       isOpen: true,
-      title: "批量删除",
-      message: `确定要删除选中的 ${selectedIds.size} 个账号吗？此操作无法撤销。`,
+      title: t("accounts.batch_delete_confirm_title"),
+      message: t("accounts.batch_delete_confirm_msg", { count: selectedIds.size }),
       type: "danger",
       onConfirm: async () => {
         try {
@@ -355,10 +359,10 @@ function App() {
             await api.removeAccount(id);
           }
           setSelectedIds(new Set());
-          addToast("success", `已删除 ${selectedIds.size} 个账号`);
+          addToast("success", t("accounts.batch_delete_success", { count: selectedIds.size }));
           await loadAccounts();
         } catch (err: any) {
-          addToast("error", err.message || "删除失败");
+          addToast("error", err.message || t("accounts.batch_delete_failed"));
         }
         setConfirmModal(null);
       },
@@ -385,25 +389,25 @@ function App() {
           <>
             <header className="page-header">
               <div className="header-left">
-                <h2 className="page-title">账号管理</h2>
-                <p>管理您的 Trae 账号</p>
+                <h2 className="page-title">{t("accounts.management")}</h2>
+                <p>{t("accounts.management_desc")}</p>
               </div>
               <div className="header-right">
-                <span className="account-count">共 {accounts.length} 个账号</span>
-                <button className="header-btn" onClick={handleImportAccounts} title="导入账号">
+                <span className="account-count">{t("accounts.count", { count: accounts.length })}</span>
+                <button className="header-btn" onClick={handleImportAccounts} title={t("common.import")}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
                   </svg>
-                  导入
+                  {t("common.import")}
                 </button>
-                <button className="header-btn" onClick={handleExportAccounts} title="导出账号" disabled={accounts.length === 0}>
+                <button className="header-btn" onClick={handleExportAccounts} title={t("common.export")} disabled={accounts.length === 0}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
                   </svg>
-                  导出
+                  {t("common.export")}
                 </button>
                 <button className="add-btn" onClick={() => setShowAddModal(true)}>
-                  <span>+</span> 添加账号
+                  <span>+</span> {t("accounts.add_account_title")}
                 </button>
               </div>
             </header>
@@ -418,21 +422,21 @@ function App() {
                         checked={selectedIds.size === accounts.length && accounts.length > 0}
                         onChange={handleSelectAll}
                       />
-                      全选 ({selectedIds.size}/{accounts.length})
+                      {t("common.select_all")} ({selectedIds.size}/{accounts.length})
                     </label>
                     {selectedIds.size > 0 && (
                       <div className="batch-actions">
                         <button className="batch-btn" onClick={handleBatchRefresh}>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">
-                            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                           </svg>
-                          刷新
+                          {t("common.refresh")}
                         </button>
                         <button className="batch-btn danger" onClick={handleBatchDelete}>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">
-                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                           </svg>
-                          删除
+                          {t("common.delete")}
                         </button>
                       </div>
                     )}
@@ -442,27 +446,27 @@ function App() {
                       <button
                         className={`view-btn ${viewMode === "grid" ? "active" : ""}`}
                         onClick={() => setViewMode("grid")}
-                        title="卡片视图"
+                        title={t("common.grid_view")}
                       >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                          <rect x="3" y="3" width="7" height="7"/>
-                          <rect x="14" y="3" width="7" height="7"/>
-                          <rect x="3" y="14" width="7" height="7"/>
-                          <rect x="14" y="14" width="7" height="7"/>
+                          <rect x="3" y="3" width="7" height="7" />
+                          <rect x="14" y="3" width="7" height="7" />
+                          <rect x="3" y="14" width="7" height="7" />
+                          <rect x="14" y="14" width="7" height="7" />
                         </svg>
                       </button>
                       <button
                         className={`view-btn ${viewMode === "list" ? "active" : ""}`}
                         onClick={() => setViewMode("list")}
-                        title="列表视图"
+                        title={t("common.list_view")}
                       >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                          <line x1="8" y1="6" x2="21" y2="6"/>
-                          <line x1="8" y1="12" x2="21" y2="12"/>
-                          <line x1="8" y1="18" x2="21" y2="18"/>
-                          <line x1="3" y1="6" x2="3.01" y2="6"/>
-                          <line x1="3" y1="12" x2="3.01" y2="12"/>
-                          <line x1="3" y1="18" x2="3.01" y2="18"/>
+                          <line x1="8" y1="6" x2="21" y2="6" />
+                          <line x1="8" y1="12" x2="21" y2="12" />
+                          <line x1="8" y1="18" x2="21" y2="18" />
+                          <line x1="3" y1="6" x2="3.01" y2="6" />
+                          <line x1="3" y1="12" x2="3.01" y2="12" />
+                          <line x1="3" y1="18" x2="3.01" y2="18" />
                         </svg>
                       </button>
                     </div>
@@ -473,19 +477,19 @@ function App() {
               {loading ? (
                 <div className="loading">
                   <div className="spinner"></div>
-                  <p>加载中...</p>
+                  <p>{t("common.loading")}</p>
                 </div>
               ) : accounts.length === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-icon">📋</div>
-                  <h3>暂无账号</h3>
-                  <p>点击上方按钮添加账号，或导入已有账号</p>
+                  <div className="empty-icon">👥</div>
+                  <h3>{t("accounts.no_accounts")}</h3>
+                  <p>{t("accounts.no_accounts_desc")}</p>
                   <div className="empty-actions">
                     <button className="empty-btn primary" onClick={() => setShowAddModal(true)}>
-                      添加账号
+                      {t("accounts.add_account_title")}
                     </button>
                     <button className="empty-btn" onClick={handleImportAccounts}>
-                      导入账号
+                      {t("common.import")}
                     </button>
                   </div>
                 </div>
@@ -507,11 +511,11 @@ function App() {
                   <div className="list-header">
                     <div className="list-col checkbox"></div>
                     <div className="list-col avatar"></div>
-                    <div className="list-col info">账号信息</div>
-                    <div className="list-col plan">套餐</div>
-                    <div className="list-col usage">使用量</div>
-                    <div className="list-col reset">重置时间</div>
-                    <div className="list-col status">状态</div>
+                    <div className="list-col info">{t("accounts.info")}</div>
+                    <div className="list-col plan">{t("accounts.plan")}</div>
+                    <div className="list-col usage">{t("accounts.usage")}</div>
+                    <div className="list-col reset">{t("accounts.reset_time")}</div>
+                    <div className="list-col status">{t("accounts.status")}</div>
                     <div className="list-col actions"></div>
                   </div>
                   {accounts.map((account) => (
@@ -545,8 +549,8 @@ function App() {
           title={confirmModal.title}
           message={confirmModal.message}
           type={confirmModal.type}
-          confirmText="确定"
-          cancelText="取消"
+          confirmText={t("common.confirm")}
+          cancelText={t("common.cancel")}
           onConfirm={confirmModal.onConfirm}
           onCancel={() => setConfirmModal(null)}
         />
@@ -574,7 +578,7 @@ function App() {
             handleCopyToken(contextMenu.accountId);
             setContextMenu(null);
           }}
-          onSwitchAccount={() => {
+          onSwitch={() => {
             handleSwitchAccount(contextMenu.accountId);
             setContextMenu(null);
           }}

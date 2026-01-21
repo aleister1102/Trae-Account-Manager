@@ -1,0 +1,61 @@
+# Trae Account Manager Build Automation
+
+# Variables
+NPM = npm
+TAURI = $(NPM) run tauri
+
+# Default target
+.PHONY: all
+all: install build
+
+# Install dependencies
+.PHONY: install
+install:
+	$(NPM) install
+
+# Run in development mode
+.PHONY: dev
+dev:
+	$(TAURI) dev
+
+# Build the frontend and desktop app for the current platform
+.PHONY: build
+build:
+	$(NPM) run build
+	$(TAURI) build
+
+# Build specifically for macOS (Apple Silicon)
+.PHONY: build-mac
+build-mac:
+	$(NPM) run build:mac
+
+# Build specifically for Linux (x86_64)
+.PHONY: build-linux
+build-linux:
+	$(NPM) run build:linux
+
+# Build specifically for Linux (ARM64)
+.PHONY: build-linux-arm
+build-linux-arm:
+	$(NPM) run build:linux-arm
+
+# Build specifically for macOS (Apple Silicon)
+.PHONY: build-mac
+build-mac:
+	$(NPM) run build:mac
+
+# Build specifically for macOS (Intel)
+.PHONY: build-mac-intel
+build-mac-intel:
+	$(NPM) run build:mac-intel
+
+# Build specifically for Windows (x64)
+.PHONY: build-windows
+build-windows:
+	$(NPM) run build:windows
+
+# Clean build artifacts
+.PHONY: clean
+clean:
+	rm -rf dist
+	rm -rf src-tauri/target
